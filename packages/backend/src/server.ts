@@ -9,6 +9,8 @@ type Term = {
 // Создаём приложение Express
 const app = express()
 
+app.use(express.json())
+
 const terms: Term[] = [
     {
         id: 1,
@@ -52,6 +54,21 @@ app.get('/api/terms/:id', (_req, res) => {
     }
     res.json(term)
 })
+
+app.post('/api/terms', (req, res) => {
+    const { title, definition } = req.body
+
+    const newTerm: Term = {
+        id: Date.now(),
+        title,
+        definition,
+    }
+
+    terms.push(newTerm)
+
+    res.status(201).json(newTerm)
+})
+
 
 // Запускаем сервер
 app.listen(PORT, () => {
