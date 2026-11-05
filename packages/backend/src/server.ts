@@ -41,6 +41,18 @@ app.get('/api/terms', (_req, res) => {
     res.json(terms)
 })
 
+app.get('/api/terms/:id', (_req, res) => {
+    const term = terms.find(t => t.id === Number(_req.params.id))
+
+    if (!term) {
+        res.status(404).json({
+            message: 'Term not found',
+        })
+        return
+    }
+    res.json(term)
+})
+
 // Запускаем сервер
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`)
