@@ -7,24 +7,30 @@ console.log('Database connected successfully!')
 
 app.use(express.json())
 
-type Term = {
-    id: number
-    title: string
-    definition: string
-}
+const tables = db
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
+    .all()
 
-const terms: Term[] = [
-    {
-        id: 1,
-        title: 'Promise',
-        definition: 'Объект для работы с асинхронными операциями',
-    },
-    {
-        id: 2,
-        title: 'Closure',
-        definition: 'Замыкание в JavaScript',
-    },
-]
+console.log('Tables:', tables)
+
+// type Term = {
+//     id: number
+//     title: string
+//     definition: string
+// }
+//
+// const terms: Term[] = [
+//     {
+//         id: 1,
+//         title: 'Promise',
+//         definition: 'Объект для работы с асинхронными операциями',
+//     },
+//     {
+//         id: 2,
+//         title: 'Closure',
+//         definition: 'Замыкание в JavaScript',
+//     },
+// ]
 
 // Указываем порт сервера
 const PORT = 3000
@@ -42,6 +48,10 @@ app.get('/api/health', (_req, res) => {
 })
 
 app.get('/api/terms', (_req, res) => {
+    const terms = db
+        .prepare('SELECT id, title, definition FROM terms')
+        .all()
+
     res.json(terms)
 })
 
