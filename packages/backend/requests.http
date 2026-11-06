@@ -5,3 +5,21 @@ Content-Type: application/json
   "title": "Closure",
   "definition": "Функция вместе со своим лексическим окружением"
 }
+
+###
+
+PUT http://localhost:3000/api/terms/2
+Content-Type: application/json
+
+{
+  "title": "Promise",
+  "definition": "Объект JavaScript для работы с асинхронными операциями"
+}
+
+###
+
+DELETE http://localhost:3000/api/terms/2
+
+###
+
+GET http://localhost:3000/api/terms

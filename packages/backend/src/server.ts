@@ -1,15 +1,17 @@
 import express from 'express'
+import db from './db.js'
+
+// Создаём приложение Express
+const app = express()
+console.log('Database connected successfully!')
+
+app.use(express.json())
 
 type Term = {
     id: number
     title: string
     definition: string
 }
-
-// Создаём приложение Express
-const app = express()
-
-app.use(express.json())
 
 const terms: Term[] = [
     {
@@ -56,17 +58,80 @@ app.get('/api/terms/:id', (_req, res) => {
 })
 
 app.post('/api/terms', (req, res) => {
-    const { title, definition } = req.body
+    const {title, definition} = req.body
 
+    if (typeof definition !== "string" ||
+        typeof title !== 'string' ||
+        title.trim() === '' ||
+        definition.trim() === '') {
+        res.status(400).json({massage: "Bad Request"})
+        return
+    }
     const newTerm: Term = {
         id: Date.now(),
         title,
         definition,
     }
-
     terms.push(newTerm)
 
     res.status(201).json(newTerm)
+
+})
+
+app.put('/api/terms/:id', (req, res) => {
+    const id = Number(req.params.id)
+
+    const termIndex = terms.findIndex(t => t.id === id)
+
+    if (termIndex === -1) {
+        res.status(404).json({
+            message: 'Term not found',
+        })
+        return
+    }
+
+    const { title, definition } = req.body
+
+    if (
+        typeof title !== 'string' ||
+        typeof definition !== 'string' ||
+        title.trim() === '' ||
+        definition.trim() === ''
+    ) {
+        res.status(400).json({
+            message: 'Title and definition are required',
+        })
+        return
+    }
+
+    const updatedTerm: Term = {
+        id,
+        title: title.trim(),
+        definition: definition.trim(),
+    }
+
+    terms[termIndex] = updatedTerm
+
+    res.json(updatedTerm)
+})
+
+app.delete('/api/terms/:id', (req, res) => {
+    const id = Number(req.params.id)
+
+    const termIndex = terms.findIndex(t => t.id === id)
+
+    if (termIndex === -1) {
+        res.status(404).json({
+            message: 'Term not found',
+        })
+        return
+    }
+
+    terms.splice(termIndex, 1)
+
+    res.status(200).json({
+        message: 'Term deleted successfully',
+    })
 })
 
 
