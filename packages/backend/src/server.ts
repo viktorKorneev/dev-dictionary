@@ -68,38 +68,6 @@ app.get('/api/terms/:id', (_req, res) => {
 })
 
 app.post('/api/terms', (req, res) => {
-    const {title, definition} = req.body
-
-    if (typeof definition !== "string" ||
-        typeof title !== 'string' ||
-        title.trim() === '' ||
-        definition.trim() === '') {
-        res.status(400).json({massage: "Bad Request"})
-        return
-    }
-    const newTerm: Term = {
-        id: Date.now(),
-        title,
-        definition,
-    }
-    terms.push(newTerm)
-
-    res.status(201).json(newTerm)
-
-})
-
-app.put('/api/terms/:id', (req, res) => {
-    const id = Number(req.params.id)
-
-    const termIndex = terms.findIndex(t => t.id === id)
-
-    if (termIndex === -1) {
-        res.status(404).json({
-            message: 'Term not found',
-        })
-        return
-    }
-
     const { title, definition } = req.body
 
     if (
@@ -114,13 +82,48 @@ app.put('/api/terms/:id', (req, res) => {
         return
     }
 
-    const updatedTerm: Term = {
-        id,
-        title: title.trim(),
-        definition: definition.trim(),
+    const result = db
+        .prepare('INSERT INTO terms (title, definition) VALUES (?, ?)')
+        .run(title.trim(), definition.trim())
+
+    const newTerm = db
+        .prepare('SELECT id, title, definition FROM terms WHERE id = ?')
+        .get(result.lastInsertRowid)
+
+    res.status(201).json(newTerm)
+})
+
+app.put('/api/terms/:id', (req, res) => {
+    const id = Number(req.params.id)
+    const { title, definition } = req.body
+
+    if (
+        !Number.isInteger(id) ||
+        typeof title !== 'string' ||
+        typeof definition !== 'string' ||
+        title.trim() === '' ||
+        definition.trim() === ''
+    ) {
+        res.status(400).json({
+            message: 'Invalid id, title or definition',
+        })
+        return
     }
 
-    terms[termIndex] = updatedTerm
+    const result = db
+        .prepare('UPDATE terms SET title = ?, definition = ? WHERE id = ?')
+        .run(title.trim(), definition.trim(), id)
+
+    if (result.changes === 0) {
+        res.status(404).json({
+            message: 'Term not found',
+        })
+        return
+    }
+
+    const updatedTerm = db
+        .prepare('SELECT id, title, definition FROM terms WHERE id = ?')
+        .get(id)
 
     res.json(updatedTerm)
 })
