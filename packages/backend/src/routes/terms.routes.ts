@@ -96,4 +96,30 @@ router.put('/:id', (req, res) => {
     res.json(updatedTerm)
 })
 
+router.delete('/:id', (req, res) => {
+    const id = Number(req.params.id)
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.status(400).json({
+            message: 'Invalid term id',
+        })
+        return
+    }
+
+    const result = db
+        .prepare('DELETE FROM terms WHERE id = ?')
+        .run(id)
+
+    if (result.changes === 0) {
+        res.status(404).json({
+            message: 'Term not found',
+        })
+        return
+    }
+
+    res.status(200).json({
+        message: 'Term deleted successfully',
+    })
+})
+
 export default router
