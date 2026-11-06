@@ -1,36 +1,13 @@
+import termsRouter from './routes/terms.routes.js'
 import express from 'express'
 import db from './db.js'
 
 // Создаём приложение Express
 const app = express()
-console.log('Database connected successfully!')
 
 app.use(express.json())
 
-const tables = db
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
-    .all()
-
-console.log('Tables:', tables)
-
-// type Term = {
-//     id: number
-//     title: string
-//     definition: string
-// }
-//
-// const terms: Term[] = [
-//     {
-//         id: 1,
-//         title: 'Promise',
-//         definition: 'Объект для работы с асинхронными операциями',
-//     },
-//     {
-//         id: 2,
-//         title: 'Closure',
-//         definition: 'Замыкание в JavaScript',
-//     },
-// ]
+app.use('/api/terms', termsRouter)
 
 // Указываем порт сервера
 const PORT = 3000
@@ -47,18 +24,10 @@ app.get('/api/health', (_req, res) => {
     })
 })
 
-app.get('/api/terms', (_req, res) => {
-    const terms = db
-        .prepare('SELECT id, title, definition FROM terms')
-        .all()
-
-    res.json(terms)
-})
-
 app.get('/api/terms/:id', (req, res) => {
     const id = Number(req.params.id)
 
-    if (!Number.isInteger(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
         res.status(400).json({
             message: 'Invalid term id',
         })
@@ -110,7 +79,7 @@ app.put('/api/terms/:id', (req, res) => {
     const { title, definition } = req.body
 
     if (
-        !Number.isInteger(id) ||
+        !Number.isInteger(id) || id <= 0 ||
         typeof title !== 'string' ||
         typeof definition !== 'string' ||
         title.trim() === '' ||
@@ -143,7 +112,7 @@ app.put('/api/terms/:id', (req, res) => {
 app.delete('/api/terms/:id', (req, res) => {
     const id = Number(req.params.id)
 
-    if (!Number.isInteger(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
         res.status(400).json({
             message: 'Invalid term id',
         })
