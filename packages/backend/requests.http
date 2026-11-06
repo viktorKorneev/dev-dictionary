@@ -23,3 +23,11 @@ DELETE http://localhost:3000/api/terms/2
 ###
 
 GET http://localhost:3000/api/terms
+
+###
+
+GET http://localhost:3000/api/terms/2
+
+###
+
+GET http://localhost:3000/api/terms/abc

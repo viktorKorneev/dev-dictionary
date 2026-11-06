@@ -55,8 +55,19 @@ app.get('/api/terms', (_req, res) => {
     res.json(terms)
 })
 
-app.get('/api/terms/:id', (_req, res) => {
-    const term = terms.find(t => t.id === Number(_req.params.id))
+app.get('/api/terms/:id', (req, res) => {
+    const id = Number(req.params.id)
+
+    if (!Number.isInteger(id)) {
+        res.status(400).json({
+            message: 'Invalid term id',
+        })
+        return
+    }
+
+    const term = db
+        .prepare('SELECT id, title, definition FROM terms WHERE id = ?')
+        .get(id)
 
     if (!term) {
         res.status(404).json({
@@ -64,6 +75,7 @@ app.get('/api/terms/:id', (_req, res) => {
         })
         return
     }
+
     res.json(term)
 })
 
@@ -131,16 +143,23 @@ app.put('/api/terms/:id', (req, res) => {
 app.delete('/api/terms/:id', (req, res) => {
     const id = Number(req.params.id)
 
-    const termIndex = terms.findIndex(t => t.id === id)
+    if (!Number.isInteger(id)) {
+        res.status(400).json({
+            message: 'Invalid term id',
+        })
+        return
+    }
 
-    if (termIndex === -1) {
+    const result = db
+        .prepare('DELETE FROM terms WHERE id = ?')
+        .run(id)
+
+    if (result.changes === 0) {
         res.status(404).json({
             message: 'Term not found',
         })
         return
     }
-
-    terms.splice(termIndex, 1)
 
     res.status(200).json({
         message: 'Term deleted successfully',
