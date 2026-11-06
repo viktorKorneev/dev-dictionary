@@ -8,7 +8,7 @@ Content-Type: application/json
 
 ###
 
-PUT http://localhost:3000/api/terms/2
+PUT http://localhost:3000/api/terms/3
 Content-Type: application/json
 
 {
@@ -26,8 +26,8 @@ GET http://localhost:3000/api/terms
 
 ###
 
-GET http://localhost:3000/api/terms/2
+GET http://localhost:3000/api/terms/3
 
 ###
 
-GET http://localhost:3000/api/terms/abc
+GET http://localhost:3000/api/terms/111
