@@ -2,7 +2,9 @@
   "name": "telegram-bot",
   "version": "1.0.0",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "dev": "tsx src/bot.ts"
+  },
   "dependencies": {
     "dotenv": "^18.0.9",
     "grammy": "^1.46.0"
