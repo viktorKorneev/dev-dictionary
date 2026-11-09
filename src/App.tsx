@@ -1,6 +1,7 @@
-import {useEffect, useState} from 'react'
-import type {Term} from './api/api'
-import {termsAPI} from './api/api'
+
+import { useEffect, useState } from 'react'
+import type { Term } from './api/api'
+import { termsAPI } from './api/api'
 import './App.css'
 
 function App() {
@@ -12,8 +13,14 @@ function App() {
     const [editTitle, setEditTitle] = useState('')
     const [editDefinition, setEditDefinition] = useState('')
 
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const [user, setUser] = useState('')
 
     useEffect(() => {
+        setIsLoading(true)
+        setError(null)
+
         termsAPI.getTerms()
             .then((res) => {
                 console.log('Получены термины:', res.data)
@@ -21,13 +28,24 @@ function App() {
             })
             .catch((error) => {
                 console.error('Failed to fetch terms:', error)
+                setError('Не удалось загрузить термины')
+            })
+            .finally(() => {
+                setIsLoading(false)
             })
     }, [])
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        termsAPI.createTerm(title, definition)
+        if (title.trim() === '' || definition.trim() === '') {
+            setUser('Заполните оба поля')
+            return
+        }
+
+        setUser('')
+
+        termsAPI.createTerm(title.trim(), definition.trim())
             .then((res) => {
                 setTerms((prevTerms) => [...prevTerms, res.data])
                 setTitle('')
@@ -41,10 +59,13 @@ function App() {
     const handleDelete = (id: number) => {
         termsAPI.deleteTerm(id)
             .then(() => {
-                setTerms((prevTerms) => prevTerms.filter((term) => id !== term.id))
-            }).catch((error) => {
-            console.error('Failed to delete term:', error)
-        })
+                setTerms((prevTerms) =>
+                    prevTerms.filter((term) => id !== term.id)
+                )
+            })
+            .catch((error) => {
+                console.error('Failed to delete term:', error)
+            })
     }
 
     const handleUpdate = (
@@ -52,10 +73,30 @@ function App() {
         title: string,
         definition: string
     ) => {
-        termsAPI.updateTerm(id, title, definition)
+        if (title.trim() === '' || definition.trim() === '') {
+            setUser('Заполните оба поля')
+            return
+        }
+
+        setUser('')
+
+        termsAPI.updateTerm(id, title.trim(), definition.trim())
             .then(() => {
-                setTerms((prevTerms) => prevTerms.map((term) => id === term.id ? {...term, title, definition} : term))
+                setTerms((prevTerms) =>
+                    prevTerms.map((term) =>
+                        id === term.id
+                            ? {
+                                ...term,
+                                title: title.trim(),
+                                definition: definition.trim()
+                            }
+                            : term
+                    )
+                )
+
                 setEditingId(null)
+                setEditTitle('')
+                setEditDefinition('')
             })
             .catch((error) => {
                 console.error('Failed to update term:', error)
@@ -63,10 +104,17 @@ function App() {
     }
 
     const handleEdit = (term: Term) => {
-        // Твой код
         setEditingId(term.id)
         setEditTitle(term.title)
         setEditDefinition(term.definition)
+        setUser('')
+    }
+
+    const handleCancelEdit = () => {
+        setEditingId(null)
+        setEditTitle('')
+        setEditDefinition('')
+        setUser('')
     }
 
     return (
@@ -90,29 +138,66 @@ function App() {
                 <button type="submit">
                     Добавить термин
                 </button>
+
+                {user && editingId === null && <p>{user}</p>}
             </form>
+
+            {isLoading && <p>Загрузка терминов...</p>}
 
             {terms.map((term) => (
                 <div key={term.id}>
-                    {/*<h2>{term.title}</h2>*/}
-                    {editingId !== term.id ?
+                    {editingId !== term.id ? (
                         <div>
                             <h2>{term.title}</h2>
                             <p>{term.definition}</p>
-                        </div> :
+                        </div>
+                    ) : (
                         <div>
-                            <input value={editTitle} onChange={(e) => setEditTitle(e.currentTarget.value)}/>
-                            <textarea value={editDefinition}
-                                      onChange={(e) => setEditDefinition(e.currentTarget.value)}>
-                            </textarea>
-                            <button type="button" onClick={() => handleUpdate(term.id, editTitle, editDefinition)}>Сохранить</button>
-                            <button type="button" onClick={() => setEditingId(null)}>Отмена</button>
-                        </div>}
+                            <input
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.currentTarget.value)}
+                            />
 
-                    <button type="button" onClick={() => handleDelete(term.id)}>Удалить термин</button>
-                    <button type="button" onClick={() => handleEdit(term)}>Редактировать</button>
+                            <textarea
+                                value={editDefinition}
+                                onChange={(e) => setEditDefinition(e.currentTarget.value)}
+                            />
+
+                            {user && <p>{user}</p>}
+
+                            <button
+                                type="button"
+                                onClick={() => handleUpdate(term.id, editTitle, editDefinition)}
+                            >
+                                Сохранить
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleCancelEdit}
+                            >
+                                Отмена
+                            </button>
+                        </div>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={() => handleDelete(term.id)}
+                    >
+                        Удалить термин
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => handleEdit(term)}
+                    >
+                        Редактировать
+                    </button>
                 </div>
             ))}
+
+            {error && <p>{error}</p>}
         </>
     )
 }
