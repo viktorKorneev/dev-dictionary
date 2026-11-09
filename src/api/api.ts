@@ -23,4 +23,10 @@ export const termsAPI = {
     deleteTerm(id: number) {
         return instance.delete(`/api/terms/${id}`)
     },
+    updateTerm(id: number, title: string, definition: string) {
+        return instance.put(`/api/terms/${id}`, {
+            title,
+            definition,
+        })
+    },
 }

@@ -8,6 +8,11 @@ function App() {
     const [title, setTitle] = useState('')
     const [definition, setDefinition] = useState('')
 
+    const [editingId, setEditingId] = useState<number | null>(null)
+    const [editTitle, setEditTitle] = useState('')
+    const [editDefinition, setEditDefinition] = useState('')
+
+
     useEffect(() => {
         termsAPI.getTerms()
             .then((res) => {
@@ -42,6 +47,28 @@ function App() {
         })
     }
 
+    const handleUpdate = (
+        id: number,
+        title: string,
+        definition: string
+    ) => {
+        termsAPI.updateTerm(id, title, definition)
+            .then(() => {
+                setTerms((prevTerms) => prevTerms.map((term) => id === term.id ? {...term, title, definition} : term))
+                setEditingId(null)
+            })
+            .catch((error) => {
+                console.error('Failed to update term:', error)
+            })
+    }
+
+    const handleEdit = (term: Term) => {
+        // Твой код
+        setEditingId(term.id)
+        setEditTitle(term.title)
+        setEditDefinition(term.definition)
+    }
+
     return (
         <>
             <h1>Dev Dictionary</h1>
@@ -67,9 +94,23 @@ function App() {
 
             {terms.map((term) => (
                 <div key={term.id}>
-                    <h2>{term.title}</h2>
-                    <p>{term.definition}</p>
-                    <button onClick={() => handleDelete(term.id)}>Удалить термин</button>
+                    {/*<h2>{term.title}</h2>*/}
+                    {editingId !== term.id ?
+                        <div>
+                            <h2>{term.title}</h2>
+                            <p>{term.definition}</p>
+                        </div> :
+                        <div>
+                            <input value={editTitle} onChange={(e) => setEditTitle(e.currentTarget.value)}/>
+                            <textarea value={editDefinition}
+                                      onChange={(e) => setEditDefinition(e.currentTarget.value)}>
+                            </textarea>
+                            <button type="button" onClick={() => handleUpdate(term.id, editTitle, editDefinition)}>Сохранить</button>
+                            <button type="button" onClick={() => setEditingId(null)}>Отмена</button>
+                        </div>}
+
+                    <button type="button" onClick={() => handleDelete(term.id)}>Удалить термин</button>
+                    <button type="button" onClick={() => handleEdit(term)}>Редактировать</button>
                 </div>
             ))}
         </>
