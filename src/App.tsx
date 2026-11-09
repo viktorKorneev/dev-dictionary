@@ -69,6 +69,7 @@ function App() {
                 <div key={term.id}>
                     <h2>{term.title}</h2>
                     <p>{term.definition}</p>
+                    <button onClick={() => handleDelete(term.id)}>Удалить термин</button>
                 </div>
             ))}
         </>
